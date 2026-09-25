@@ -1,0 +1,810 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Recare Unite Storybook · proposal mock (R2-368)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+/* ---------- Storybook chrome (themed with Recare brand) ---------- */
+:root {
+  --sb-bg: #ffffff;
+  --sb-side: #f6f8fa;
+  --sb-border: #e3e8ee;
+  --sb-text: #1f2328;
+  --sb-muted: #6b7680;
+  --sb-accent: #0485f7;
+  --sb-accent-soft: rgba(4, 133, 247, 0.1);
+  --sb-code: #16181d;
+  --sb-ok: #1a7f37;
+  --sb-ok-soft: #dafbe1;
+  --sb-warn: #9a6700;
+  --sb-warn-soft: #fff8c5;
+  --sb-bad: #cf222e;
+  --sb-bad-soft: #ffebe9;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { font: 14px/1.5 "DM Sans", system-ui, sans-serif; color: var(--sb-text); background: var(--sb-bg); }
+a { color: var(--sb-accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, pre, .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+:not(pre) > code { font-size: 12.5px; background: #eff2f5; padding: 1px 6px; border-radius: 6px; }
+
+.banner { height: 34px; display: flex; align-items: center; justify-content: center; gap: 10px; background: #0b1b2b; color: #cfe6ff; font-size: 12.5px; }
+.banner b { color: #fff; }
+.app { display: grid; grid-template-columns: 272px 1fr; height: calc(100% - 34px); }
+
+/* Sidebar */
+.sidebar { background: var(--sb-side); border-right: 1px solid var(--sb-border); display: flex; flex-direction: column; min-height: 0; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 16px 16px 12px; }
+.brand-mark { width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, #0485f7, #61a8fc); display: grid; place-items: center; color: #fff; font-weight: 700; }
+.brand-name { font-weight: 700; font-size: 15px; }
+.brand-ver { font-size: 11px; color: var(--sb-muted); }
+.search { margin: 0 12px 8px; position: relative; }
+.search input { width: 100%; height: 34px; border: 1px solid var(--sb-border); border-radius: 10px; padding: 0 10px 0 30px; font: inherit; background: #fff; }
+.search svg { position: absolute; left: 10px; top: 10px; }
+.filters { display: flex; gap: 4px; padding: 0 12px 10px; flex-wrap: wrap; }
+.filters button { border: 1px solid var(--sb-border); background: #fff; border-radius: 999px; padding: 2px 10px; font: 500 12px "DM Sans", system-ui, sans-serif; color: var(--sb-muted); cursor: pointer; }
+.filters button.on { background: var(--sb-accent); border-color: var(--sb-accent); color: #fff; }
+.nav { overflow: auto; padding: 0 8px 24px; flex: 1; }
+.nav-sec { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--sb-muted); padding: 14px 10px 6px; }
+.nav-item { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: none; text-align: left; font: inherit; padding: 6px 10px; border-radius: 8px; cursor: pointer; color: var(--sb-text); }
+.nav-item:hover { background: #eaeef2; }
+.nav-item.on { background: var(--sb-accent-soft); color: var(--sb-accent); font-weight: 600; }
+.nav-item .grow { flex: 1; }
+.nav-foot { border-top: 1px solid var(--sb-border); padding: 10px 16px; font-size: 12px; color: var(--sb-muted); }
+
+.status { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; border-radius: 999px; padding: 1px 7px; }
+.status.stable { background: var(--sb-ok-soft); color: var(--sb-ok); }
+.status.beta { background: var(--sb-warn-soft); color: var(--sb-warn); }
+.status.deprecated { background: var(--sb-bad-soft); color: var(--sb-bad); }
+.status.proposed { background: #eef1f4; color: var(--sb-muted); }
+
+/* Main + toolbar */
+.main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.toolbar { height: 52px; flex: none; border-bottom: 1px solid var(--sb-border); display: flex; align-items: center; gap: 18px; padding: 0 20px; background: #fff; overflow-x: auto; }
+button, input, select, textarea { font-family: inherit; }
+.tb-group { display: flex; align-items: center; gap: 8px; }
+.tb-label { font-size: 11.5px; font-weight: 600; color: var(--sb-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.seg { display: inline-flex; background: #eef1f4; border-radius: 10px; padding: 3px; gap: 2px; }
+.seg button { white-space: nowrap; border: 0; background: transparent; font: 500 12.5px "DM Sans", system-ui, sans-serif; padding: 4px 10px; border-radius: 7px; cursor: pointer; color: var(--sb-text); }
+.seg button.on { background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.12); color: var(--sb-accent); font-weight: 600; }
+.tb-spacer { flex: 1; }
+.pill { white-space: nowrap; flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 4px 10px; }
+.pill.ok { background: var(--sb-ok-soft); color: var(--sb-ok); }
+.pill.warn { background: var(--sb-warn-soft); color: var(--sb-warn); }
+
+#content { overflow: auto; flex: 1; }
+.page { max-width: 1040px; margin: 0 auto; padding: 32px 40px 80px; }
+.crumb { font-size: 12.5px; color: var(--sb-muted); margin-bottom: 6px; }
+h1 { font-size: 30px; line-height: 1.2; margin: 0 0 10px; letter-spacing: -0.01em; }
+h2 { font-size: 20px; margin: 44px 0 6px; letter-spacing: -0.005em; }
+h3 { font-size: 15px; margin: 22px 0 6px; }
+.lead { font-size: 16px; color: #3d4750; max-width: 720px; margin: 0 0 16px; }
+.sub { color: var(--sb-muted); margin: 0 0 14px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 8px; }
+.meta .chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--sb-border); border-radius: 999px; padding: 3px 10px; font-size: 12.5px; background: #fff; color: var(--sb-text); }
+.meta .chip.ok { border-color: #aceebb; background: var(--sb-ok-soft); color: var(--sb-ok); }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--sb-border); margin: 20px 0 0; }
+.tabs button { border: 0; background: none; font: 600 13.5px "DM Sans", system-ui, sans-serif; color: var(--sb-muted); padding: 10px 14px; border-bottom: 2px solid transparent; cursor: pointer; margin-bottom: -1px; }
+.tabs button.on { color: var(--sb-accent); border-color: var(--sb-accent); }
+.note { border-radius: 12px; padding: 12px 14px; background: var(--sb-accent-soft); color: #0b4f8f; font-size: 13.5px; margin: 14px 0; }
+.note.muted { background: #f3f5f7; color: #4a5560; }
+.tagline { font-size: 11.5px; color: var(--sb-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* Preview frames */
+.frames { display: grid; gap: 12px; }
+.frames.split { grid-template-columns: 1fr 1fr; }
+.pane { position: relative; background: var(--background); color: var(--foreground); border: 1px solid var(--sb-border); border-radius: 14px; padding: 36px 28px; font-family: "DM Sans", sans-serif; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; min-height: 120px; }
+.pane.left { justify-content: flex-start; }
+.pane.block { display: block; }
+.pane-tag { position: absolute; top: 8px; inset-inline-start: 10px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.story-bar { display: flex; align-items: center; justify-content: space-between; margin: 16px 0 6px; }
+.story-bar .name { font-weight: 600; }
+.story-bar .actions { display: flex; gap: 6px; }
+.btn-sb { border: 1px solid var(--sb-border); background: #fff; border-radius: 8px; padding: 4px 10px; font: 500 12.5px "DM Sans", system-ui, sans-serif; cursor: pointer; color: var(--sb-text); }
+.btn-sb:hover { border-color: #c5ced6; }
+
+/* Code */
+.code { position: relative; background: var(--sb-code); color: #e6edf3; border-radius: 12px; padding: 14px 16px; margin: 10px 0; font-size: 12.8px; line-height: 1.6; overflow: auto; white-space: pre; }
+.code .s { color: #a5d6ff; } .code .k { color: #ff7b72; } .code .c { color: #7d8590; } .code .tg { color: #7ee787; }
+.code .copy { position: absolute; top: 8px; right: 8px; border: 1px solid #30363d; background: #21262d; color: #c9d1d9; border-radius: 6px; font: 500 11.5px "DM Sans", system-ui, sans-serif; padding: 3px 8px; cursor: pointer; }
+
+/* Controls table */
+.ctl { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 13px; border: 1px solid var(--sb-border); border-radius: 12px; overflow: hidden; }
+.ctl th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--sb-muted); background: #f6f8fa; padding: 8px 12px; }
+.ctl td { padding: 9px 12px; border-top: 1px solid var(--sb-border); vertical-align: middle; }
+.ctl td:first-child { font-family: "JetBrains Mono", monospace; font-size: 12.5px; white-space: nowrap; }
+.ctl select, .ctl input[type=text] { font: inherit; border: 1px solid var(--sb-border); border-radius: 8px; height: 30px; padding: 0 8px; min-width: 180px; background: #fff; }
+.switch { position: relative; width: 34px; height: 20px; display: inline-block; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch span { position: absolute; inset: 0; background: #d0d7de; border-radius: 999px; transition: .15s; cursor: pointer; }
+.switch span::after { content: ""; position: absolute; width: 16px; height: 16px; left: 2px; top: 2px; background: #fff; border-radius: 50%; transition: .15s; }
+.switch input:checked + span { background: var(--sb-accent); }
+.switch input:checked + span::after { transform: translateX(14px); }
+.type { color: var(--sb-muted); font-size: 12px; font-family: "JetBrains Mono", monospace; }
+
+.cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.card { border: 1px solid var(--sb-border); border-radius: 14px; padding: 16px 18px; background: #fff; }
+.card h4 { margin: 0 0 6px; font-size: 14px; }
+.card ul { margin: 6px 0 0; padding-left: 18px; }
+.card li { margin: 3px 0; }
+.dd-head { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px; margin: 10px 0 0; }
+.dd-head.do { color: var(--sb-ok); } .dd-head.dont { color: var(--sb-bad); }
+.dd-bar { height: 3px; border-radius: 3px; margin-top: 6px; }
+.dd-bar.do { background: var(--sb-ok); } .dd-bar.dont { background: var(--sb-bad); }
+
+.grid-review .u-btn { max-width: none; overflow: visible; }
+.pane:has(.grid-review) { overflow-x: auto; justify-content: flex-start; }
+.grid-review { width: max-content; margin-inline: auto; display: grid; gap: 10px 14px; align-items: center; justify-items: center; }
+.grid-review .gl { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; justify-self: start; }
+.grid-review .gc { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+
+.addon { border: 1px solid var(--sb-border); border-radius: 14px; margin-top: 12px; overflow: hidden; }
+.addon .tabs { margin: 0; padding: 0 8px; background: #f6f8fa; }
+.addon-body { padding: 14px 16px; }
+.check { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; font-size: 13.5px; }
+.check .ic { flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--sb-ok-soft); color: var(--sb-ok); display: grid; place-items: center; font-size: 11px; font-weight: 700; margin-top: 1px; }
+.figma { height: 220px; border-radius: 12px; background: repeating-linear-gradient(45deg, #f3f5f7, #f3f5f7 10px, #eef1f4 10px, #eef1f4 20px); display: grid; place-items: center; color: var(--sb-muted); font-weight: 600; }
+
+.props { width: 100%; border-collapse: collapse; font-size: 13px; }
+.props th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--sb-muted); padding: 8px 10px; border-bottom: 1px solid var(--sb-border); }
+.props td { padding: 9px 10px; border-bottom: 1px solid var(--sb-border); vertical-align: top; }
+.props td:first-child { font-family: "JetBrains Mono", monospace; font-size: 12.5px; white-space: nowrap; }
+
+.kbd { display: inline-block; border: 1px solid #d0d7de; border-bottom-width: 2px; border-radius: 6px; padding: 0 6px; font: 500 12px "JetBrains Mono", ui-monospace, monospace; background: #fff; }
+
+/* Welcome */
+.hero { border-radius: 20px; padding: 34px 36px; background: radial-gradient(1200px 300px at 0% 0%, #e3f1ff, transparent), linear-gradient(135deg, #f7fbff, #eef6ff); border: 1px solid #d8e9fb; }
+.hero h1 { font-size: 34px; }
+.cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 16px; }
+.cards4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
+.link-card { cursor: pointer; transition: border-color .15s, transform .15s; }
+.link-card:hover { border-color: var(--sb-accent); transform: translateY(-1px); }
+.big { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+
+/* Contributing */
+.steps { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 14px; }
+.step { border: 1px solid var(--sb-border); border-radius: 12px; padding: 12px; background: #fff; }
+.step .n { width: 22px; height: 22px; border-radius: 50%; background: var(--sb-accent); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+.step b { display: block; font-size: 13px; }
+.step span { font-size: 12px; color: var(--sb-muted); }
+.dod label { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--sb-border); cursor: pointer; }
+.dod input { margin-top: 3px; accent-color: var(--sb-accent); }
+.progress { height: 8px; background: #eef1f4; border-radius: 999px; overflow: hidden; margin: 8px 0 4px; }
+.progress > div { height: 100%; background: var(--sb-accent); transition: width .2s; }
+.lifecycle { display: flex; align-items: stretch; gap: 8px; margin-top: 10px; }
+.lifecycle .card { flex: 1; }
+.pr { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
+.diff { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.diff > div { border-radius: 10px; padding: 18px; display: flex; justify-content: center; gap: 8px; border: 1px solid var(--sb-border); }
+.diff .after { outline: 2px solid #ff7b72; outline-offset: -2px; }
+
+.health { width: 100%; border-collapse: collapse; font-size: 13px; }
+.health th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--sb-muted); padding: 8px 10px; border-bottom: 1px solid var(--sb-border); }
+.health td { padding: 9px 10px; border-bottom: 1px solid var(--sb-border); }
+.health tr:hover td { background: #f8fafc; cursor: pointer; }
+.y { color: var(--sb-ok); font-weight: 700; } .n { color: var(--sb-bad); font-weight: 700; } .p { color: var(--sb-warn); font-weight: 700; }
+.bar { height: 6px; background: #eef1f4; border-radius: 999px; overflow: hidden; width: 80px; display: inline-block; vertical-align: middle; margin-right: 6px; }
+.bar > div { height: 100%; background: var(--sb-ok); }
+
+/* ---------- Recare Unite tokens (from packages/unite-web/DESIGN.md) ---------- */
+.theme-light {
+  --background: #ffffff; --foreground: #18181b; --muted: #727272;
+  --surface: #ffffff; --surface-secondary: #e8e8e8; --background-secondary: #f4f4f5;
+  --accent: #0485f7; --accent-foreground: #fcfcfc; --accent-hover: #3592f9;
+  --accent-soft: rgba(4,133,247,.15); --accent-soft-foreground: #1e63ae;
+  --danger: #ff383c; --danger-foreground: #fcfcfc; --danger-hover: #ff5551;
+  --danger-soft: rgba(255,56,60,.15); --danger-soft-foreground: #a43433;
+  --success: #17c964; --success-soft: rgba(23,201,100,.15); --success-soft-foreground: #2b7745;
+  --warning: #f5a524; --warning-soft: rgba(245,165,36,.15); --warning-soft-foreground: #855f2e;
+  --border: #dedede; --default: #ededed; --default-foreground: #18181b; --default-hover: #e3e3e3;
+  --focus: #0485f7; --separator: #e4e4e4;
+  --field-background: #ffffff; --field-placeholder: #727272; --field-foreground: #18181b;
+  --shadow-field: 0 2px 4px 0 rgba(0,0,0,.04), 0 1px 2px 0 rgba(0,0,0,.06), 0 0 1px 0 rgba(0,0,0,.06);
+  --shadow-overlay: 0 2px 8px 0 rgba(0,0,0,.06), 0 -6px 12px 0 rgba(0,0,0,.03), 0 14px 28px 0 rgba(0,0,0,.08);
+}
+.theme-dark {
+  --background: #060606; --foreground: #fcfcfc; --muted: #a0a0a0;
+  --surface: #181818; --surface-secondary: #232323; --background-secondary: #0d0d0d;
+  --accent: #0485f7; --accent-foreground: #fcfcfc; --accent-hover: #3592f9;
+  --accent-soft: rgba(4,133,247,.12); --accent-soft-foreground: #61a8fc;
+  --danger: #db3b3e; --danger-foreground: #fcfcfc; --danger-hover: #e15451;
+  --danger-soft: rgba(219,59,62,.15); --danger-soft-foreground: #eb7872;
+  --success: #17c964; --success-soft: rgba(23,201,100,.12); --success-soft-foreground: #74d88f;
+  --warning: #f7b750; --warning-soft: rgba(247,183,80,.12); --warning-soft-foreground: #f9cb86;
+  --border: #292929; --default: #272727; --default-foreground: #fcfcfc; --default-hover: #2e2e2e;
+  --focus: #0485f7; --separator: #222222;
+  --field-background: #181818; --field-placeholder: #a0a0a0; --field-foreground: #fcfcfc;
+  --shadow-field: 0 0 0 1px #292929;
+  --shadow-overlay: 0 0 0 1px #292929, 0 14px 28px rgba(0,0,0,.5);
+  border-color: #1f1f1f;
+}
+
+/* ---------- Unite component look-alikes ---------- */
+.u-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 999px; font: 500 14px/20px "DM Sans", sans-serif; height: 40px; padding: 0 16px; cursor: pointer; transition: background .15s, transform .1s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.u-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.u-btn:active:not([disabled]) { transform: scale(.97); }
+.u-btn--sm { height: 32px; padding: 0 12px; font-size: 13px; }
+.u-btn--lg { height: 48px; padding: 0 20px; font-size: 16px; }
+.u-btn--icon { width: 40px; padding: 0; } .u-btn--sm.u-btn--icon { width: 32px; } .u-btn--lg.u-btn--icon { width: 48px; }
+.u-btn--primary { background: var(--accent); color: var(--accent-foreground); } .u-btn--primary:hover:not([disabled]) { background: var(--accent-hover); }
+.u-btn--secondary { background: var(--default); color: var(--default-foreground); } .u-btn--secondary:hover:not([disabled]) { background: var(--default-hover); }
+.u-btn--tertiary { background: var(--accent-soft); color: var(--accent-soft-foreground); }
+.u-btn--outline { background: transparent; color: var(--foreground); box-shadow: inset 0 0 0 1px var(--border); }
+.u-btn--ghost { background: transparent; color: var(--foreground); } .u-btn--ghost:hover:not([disabled]) { background: var(--default); }
+.u-btn--danger { background: var(--danger); color: var(--danger-foreground); } .u-btn--danger:hover:not([disabled]) { background: var(--danger-hover); }
+.u-btn--danger-soft { background: var(--danger-soft); color: var(--danger-soft-foreground); }
+.u-btn[disabled] { opacity: .5; cursor: not-allowed; }
+.spinner { width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; flex: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.u-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border-radius: 999px; font: 500 13px "DM Sans", system-ui, sans-serif; background: var(--default); color: var(--default-foreground); border: 0; cursor: default; white-space: nowrap; }
+button.u-chip { cursor: pointer; }
+.u-chip[aria-pressed="true"], .u-chip--accent { background: var(--accent-soft); color: var(--accent-soft-foreground); }
+.u-chip--success { background: var(--success-soft); color: var(--success-soft-foreground); }
+.u-chip--warning { background: var(--warning-soft); color: var(--warning-soft-foreground); }
+.u-chip--danger { background: var(--danger-soft); color: var(--danger-soft-foreground); }
+.u-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.u-label { font-size: 14px; font-weight: 500; }
+.u-input, .u-textarea { border: 0; border-radius: 16px; background: var(--field-background); box-shadow: var(--shadow-field); padding: 0 14px; height: 44px; color: var(--field-foreground); font: 14px "DM Sans", system-ui, sans-serif; width: 100%; }
+.u-textarea { height: 88px; padding: 12px 14px; resize: none; }
+.u-input::placeholder, .u-textarea::placeholder { color: var(--field-placeholder); }
+.u-input:focus, .u-textarea:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+.u-desc { font-size: 12px; color: var(--muted); }
+.u-card { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow-overlay); padding: 28px; width: 100%; max-width: 620px; display: flex; flex-direction: column; gap: 18px; }
+.u-card h3 { margin: 0; font-size: 20px; }
+.u-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.u-row > * { flex: 1; }
+.u-tbg { display: inline-flex; background: var(--default); border-radius: 999px; padding: 4px; gap: 4px; }
+.u-tb { width: 116px; height: 32px; border-radius: 999px; border: 0; background: transparent; color: var(--foreground); font: 500 13px "DM Sans", system-ui, sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 10px; cursor: pointer; }
+.u-tb[aria-pressed="true"] { background: var(--surface); box-shadow: var(--shadow-field); }
+.u-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-soft-foreground); display: grid; place-items: center; font-weight: 600; }
+.u-link { color: var(--foreground); text-decoration: underline; text-underline-offset: 3px; }
+.u-skel { background: var(--default); border-radius: 10px; animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .5; } }
+.u-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.u-sep { height: 1px; background: var(--separator); }
+
+.overflowing { outline: 2px dashed #e5484d !important; outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="banner"><b>Proposal mock · R2-368</b> Illustrative only, not implemented. Data on the Health page is made up.</div>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">R</div>
+      <div><div class="brand-name">Recare Unite</div><div class="brand-ver">Storybook · web · v0.1</div></div>
+    </div>
+    <div class="search">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#6b7680" stroke-width="1.6"><circle cx="7" cy="7" r="5"/><path d="M11 11l3.5 3.5"/></svg>
+      <input id="search" placeholder="Find components, tokens…" />
+    </div>
+    <div class="filters" id="filters"></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="nav-foot">Built from <code>packages/unite-web</code></div>
+  </aside>
+  <div class="main">
+    <header class="toolbar" id="toolbar"></header>
+    <div id="content"></div>
+  </div>
+</div>
+
+<script>
+const state = {
+  page: "welcome",
+  theme: "light",
+  locale: "en",
+  tab: "docs",
+  panel: "controls",
+  filter: "all",
+  search: "",
+  controls: { variant: "primary", size: "md", disabled: false, pending: false, label: "" },
+  careType: "inpatient",
+  needs: new Set(["wheelchair"]),
+};
+
+const I18N = {
+  en: {
+    savePatient: "Save patient", cancel: "Cancel", keep: "Keep", del: "Delete", add: "Add", edit: "Edit", print: "Print",
+    deleteQ: "Delete this patient?", deleteHelp: "This removes the request for all facilities.",
+    dischargeTitle: "Discharge request", dischargeSub: "Send to receiving care facilities",
+    patientName: "Patient name", patientPh: "e.g. Maria Schmidt", dischargeDate: "Discharge date",
+    careType: "Care type", inpatient: "Inpatient", shortTerm: "Short-term", homeCare: "Home care",
+    careNeeds: "Care needs", wheelchair: "Wheelchair", oxygen: "Oxygen supply", dementia: "Dementia care", wound: "Wound care",
+    notes: "Notes for the receiving facility", notesPh: "Anything the facility should know", notesHelp: "Visible to every facility you contact",
+    send: "Send request", draft: "Save draft", searching: "Searching", matched: "3 facilities matched",
+  },
+  de: {
+    savePatient: "Patient speichern", cancel: "Abbrechen", keep: "Behalten", del: "Löschen", add: "Hinzufügen", edit: "Bearbeiten", print: "Drucken",
+    deleteQ: "Diesen Patienten löschen?", deleteHelp: "Die Anfrage wird für alle Einrichtungen entfernt.",
+    dischargeTitle: "Entlassungsanfrage", dischargeSub: "An aufnehmende Pflegeeinrichtungen senden",
+    patientName: "Name des Patienten", patientPh: "z. B. Maria Schmidt", dischargeDate: "Entlassungsdatum",
+    careType: "Versorgungsart", inpatient: "Vollstationär", shortTerm: "Kurzzeitpflege", homeCare: "Ambulante Pflege",
+    careNeeds: "Pflegebedarf", wheelchair: "Rollstuhl", oxygen: "Sauerstoffversorgung", dementia: "Demenzbetreuung", wound: "Wundversorgung",
+    notes: "Hinweise für die aufnehmende Einrichtung", notesPh: "Was die Einrichtung wissen sollte", notesHelp: "Sichtbar für alle kontaktierten Einrichtungen",
+    send: "Anfrage senden", draft: "Entwurf speichern", searching: "Suche läuft", matched: "3 Einrichtungen gefunden",
+  },
+};
+function t(k) {
+  return I18N[state.locale][k] ?? k;
+}
+const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+const COMPONENTS = [
+  { id: "button", name: "Button", status: "stable", figma: 1, a11y: 1, tests: 12, docs: 1, visual: 1, owner: "Web DS" },
+  { id: "chip", name: "Chip", status: "stable", figma: 1, a11y: 1, tests: 6, docs: 1, visual: 1, owner: "Web DS" },
+  { id: "badge", name: "Badge", status: "stable", figma: 1, a11y: 1, tests: 5, docs: 1, visual: 1, owner: "Web DS" },
+  { id: "avatar", name: "Avatar", status: "stable", figma: 1, a11y: 1, tests: 4, docs: 0, visual: 1, owner: "Web DS" },
+  { id: "link", name: "Link", status: "stable", figma: 1, a11y: 1, tests: 4, docs: 0, visual: 1, owner: "Web DS" },
+  { id: "description", name: "Description", status: "stable", figma: 1, a11y: 1, tests: 3, docs: 0, visual: 1, owner: "Web DS" },
+  { id: "skeleton", name: "Skeleton", status: "stable", figma: 1, a11y: 1, tests: 3, docs: 1, visual: 1, owner: "Web DS" },
+  { id: "textarea", name: "Textarea", status: "stable", figma: 0, a11y: 1, tests: 7, docs: 1, visual: 1, owner: "Web DS" },
+  { id: "toggle-button", name: "Toggle button", status: "stable", figma: 1, a11y: 1, tests: 6, docs: 1, visual: 1, owner: "Web DS" },
+  { id: "toggle-button-group", name: "Toggle button group", status: "beta", figma: 1, a11y: 1, tests: 5, docs: 0, visual: 1, owner: "Web DS" },
+  { id: "accordion", name: "Accordion", status: "beta", figma: 1, a11y: 1, tests: 8, docs: 0, visual: 1, owner: "Web DS" },
+  { id: "accordion-item", name: "Accordion item", status: "beta", figma: 1, a11y: 1, tests: 4, docs: 0, visual: 0, owner: "Web DS" },
+  { id: "toolbar", name: "Toolbar", status: "beta", figma: 0, a11y: 1, tests: 3, docs: 0, visual: 0, owner: "Web DS" },
+  { id: "date-input-group", name: "Date input group", status: "beta", figma: 0, a11y: 1, tests: 9, docs: 0, visual: 0, owner: "Web DS" },
+];
+
+const NAV = [
+  { section: "Welcome", items: [{ id: "welcome", label: "Introduction" }] },
+  { section: "Foundations", items: [{ id: "colors", label: "Colors" }, { id: "typography", label: "Typography" }, { id: "spacing", label: "Spacing, radius, elevation" }] },
+  { section: "Components", items: COMPONENTS.map((c) => ({ id: c.id, label: c.name, status: c.status })) },
+  { section: "Patterns", items: [{ id: "discharge", label: "Discharge request form" }] },
+  { section: "Contributing", items: [{ id: "contributing", label: "How to contribute" }, { id: "health", label: "Design system health" }] },
+];
+
+const ICON = {
+  doc: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 1.5h5.5L13 5v9.5H4z"/><path d="M9 1.5V5.5h4"/></svg>',
+  comp: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1.5l6.5 6.5L8 14.5 1.5 8z"/></svg>',
+  token: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 2v12"/></svg>',
+  pattern: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="1.5" width="5" height="5" rx="1"/><rect x="9.5" y="1.5" width="5" height="5" rx="1"/><rect x="1.5" y="9.5" width="13" height="5" rx="1"/></svg>',
+  plus: '<svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+  pencil: '<svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 2.5l2.5 2.5L6 12.5H3.5V10z"/></svg>',
+  printer: '<svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6V2h8v4M4 12H2.5V6.5h11V12H12M4 9.5h8V14H4z"/></svg>',
+};
+const sectionIcon = { Welcome: ICON.doc, Foundations: ICON.token, Components: ICON.comp, Patterns: ICON.pattern, Contributing: ICON.doc };
+
+/* ---------- helpers ---------- */
+function frame(fn, cls = "") {
+  const themes = state.theme === "split" ? ["light", "dark"] : [state.theme];
+  return `<div class="frames ${themes.length > 1 ? "split" : ""}">${themes
+    .map((th) => `<div class="pane theme-${th} ${cls}" lang="${state.locale}">${themes.length > 1 ? `<span class="pane-tag">${th}</span>` : ""}${typeof fn === "function" ? fn(th) : fn}</div>`)
+    .join("")}</div>`;
+}
+function hl(src) {
+  return esc(src)
+    .replace(/(\/\/.*)$/gm, '<span class="c">$1</span>')
+    .replace(/(&quot;|")([^"\n]*?)"/g, '<span class="s">"$2"</span>')
+    .replace(/\b(import|from|export|const|return|true|false)\b/g, '<span class="k">$1</span>')
+    .replace(/(&lt;\/?)([A-Z][A-Za-z.]*)/g, '$1<span class="tg">$2</span>');
+}
+function code(src, id = "") {
+  return `<div class="code" ${id ? `id="${id}"` : ""}><button class="copy" data-copy>Copy</button><span class="src">${hl(src)}</span></div>`;
+}
+function btn(o = {}) {
+  const v = o.variant || "primary", s = o.size || "md";
+  const cls = ["u-btn", `u-btn--${v}`, `u-btn--${s}`, o.iconOnly ? "u-btn--icon" : ""].join(" ");
+  const label = o.iconOnly ? (o.icon || ICON.plus) : esc(o.label || t("savePatient"));
+  return `<button type="button" class="${cls}" ${o.disabled ? "disabled" : ""} ${o.pending ? 'aria-busy="true"' : ""} ${o.iconOnly ? `aria-label="${esc(o.aria || t("add"))}"` : ""} ${o.style ? `style="${o.style}" data-fit` : ""}>${o.pending ? '<span class="spinner" aria-hidden="true"></span>' : ""}${label}</button>`;
+}
+function statusTag(s) { return `<span class="status ${s}">${s}</span>`; }
+function sw(k) { return `<label class="switch"><input type="checkbox" data-ctl="${k}" ${state.controls[k] ? "checked" : ""}><span></span></label>`; }
+
+/* ---------- toolbar ---------- */
+function renderToolbar() {
+  const seg = (key, opts) =>
+    `<div class="seg">${opts.map(([v, l]) => `<button class="${state[key] === v ? "on" : ""}" data-set="${key}" data-val="${v}">${l}</button>`).join("")}</div>`;
+  document.getElementById("toolbar").innerHTML = `
+    <div class="tb-group"><span class="tb-label">Theme</span>${seg("theme", [["light", "Light"], ["dark", "Dark"], ["split", "Side by side"]])}</div>
+    <div class="tb-group"><span class="tb-label">Locale</span>${seg("locale", [["en", "EN"], ["de", "DE"]])}</div>
+    <div class="tb-spacer"></div>
+    <span class="pill ok" title="axe runs on every story; a violation fails the build">✓ a11y · 0 violations</span>
+    <span class="pill ok" id="trunc">✓ No truncation</span>`;
+}
+
+/* ---------- sidebar ---------- */
+function renderSidebar() {
+  document.getElementById("filters").innerHTML = ["all", "stable", "beta", "deprecated"]
+    .map((f) => `<button class="${state.filter === f ? "on" : ""}" data-filter="${f}">${f[0].toUpperCase() + f.slice(1)}</button>`)
+    .join("");
+  const q = state.search.toLowerCase();
+  document.getElementById("nav").innerHTML = NAV.map((sec) => {
+    const items = sec.items.filter((i) => (!q || i.label.toLowerCase().includes(q)) && (state.filter === "all" || !i.status || i.status === state.filter));
+    if (!items.length) return "";
+    return `<div class="nav-sec">${sec.section}</div>${items
+      .map((i) => `<button class="nav-item ${state.page === i.id ? "on" : ""}" data-nav="${i.id}">${sectionIcon[sec.section]}<span class="grow">${i.label}</span>${i.status && i.status !== "stable" ? statusTag(i.status) : ""}</button>`)
+      .join("")}`;
+  }).join("");
+}
+
+/* ---------- pages ---------- */
+function pageWelcome() {
+  return `<div class="page">
+  <div class="hero">
+    <div class="tagline">Recare design system · web</div>
+    <h1>Recare Unite</h1>
+    <p class="lead">One place to find, try, and contribute to the components that build Recare. Everything here is rendered from the real package, so what you see is what ships.</p>
+    <div class="meta"><span class="chip ok">14 components</span><span class="chip">Light and dark</span><span class="chip">German and English</span><span class="chip ok">axe on every story</span></div>
+  </div>
+  <h2>Principles</h2>
+  <div class="cards3">
+    <div class="card"><h4>Figma and code stay one-to-one</h4>Every component links to its Figma frame. Drift shows up on the Health page.</div>
+    <div class="card"><h4>Import Recare, never HeroUI</h4>Every snippet imports from <code>@recare/unite-web</code>. HeroUI stays an implementation detail.</div>
+    <div class="card"><h4>Accessible by default</h4>An axe violation or failing interaction test fails the story and blocks the PR.</div>
+  </div>
+  <h2>Try the toolbar</h2>
+  <p class="sub">Every story responds to the global switches at the top.</p>
+  <div class="cols2">
+    <div class="card"><h4>Theme</h4>Light, dark, or <b>side by side</b> to review both in one glance.</div>
+    <div class="card"><h4>Locale</h4>German or English. Longer German labels that no longer fit are flagged in the toolbar.</div>
+  </div>
+  <h2>Where to start</h2>
+  <div class="cards4">
+    <div class="card link-card" data-nav="colors"><div class="tagline">Foundations</div><h4>Tokens</h4>Colors, type, spacing.</div>
+    <div class="card link-card" data-nav="button"><div class="tagline">Components</div><h4>Button</h4>See the full docs template.</div>
+    <div class="card link-card" data-nav="discharge"><div class="tagline">Patterns</div><h4>Discharge form</h4>Components in a real flow.</div>
+    <div class="card link-card" data-nav="contributing"><div class="tagline">Contributing</div><h4>Add a component</h4>From idea to stable.</div>
+  </div>
+</div>`;
+}
+
+const TOKENS = [
+  ["Base", [["background", "#FFFFFF", "#060606"], ["foreground", "#18181B", "#FCFCFC"], ["muted", "#727272", "#A0A0A0"], ["surface", "#FFFFFF", "#181818"], ["surface-secondary", "#E8E8E8", "#232323"], ["default", "#EDEDED", "#272727"], ["border", "#DEDEDE", "#292929"], ["separator", "#E4E4E4", "#222222"]]],
+  ["Brand and focus", [["accent", "#0485F7", "#0485F7"], ["accent-hover", "#3592F9", "#3592F9"], ["accent-soft", "rgba(4,133,247,.15)", "rgba(4,133,247,.12)"], ["focus", "#0485F7", "#0485F7"]]],
+  ["Status", [["success", "#17C964", "#17C964"], ["warning", "#F5A524", "#F7B750"], ["danger", "#FF383C", "#DB3B3E"], ["danger-soft", "rgba(255,56,60,.15)", "rgba(219,59,62,.15)"]]],
+];
+function pageColors() {
+  return `<div class="page">
+  <div class="crumb">Foundations</div><h1>Colors</h1>
+  <p class="lead">Semantic tokens synced from the HeroUI Pro design system. Product code uses the token name, never the raw value.</p>
+  <div class="note muted">Generated from <code>DESIGN.md</code> at build time, so this page can never drift from the CSS.</div>
+  ${TOKENS.map(([g, list]) => `<h2>${g}</h2>${frame((th) => `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;width:100%">${list
+    .map(([n, l, d]) => `<div><div style="height:56px;border-radius:12px;background:var(--${n});box-shadow:inset 0 0 0 1px rgba(128,128,128,.25)"></div><div style="font-weight:600;font-size:13px;margin-top:6px">${n}</div><div style="font:12px 'JetBrains Mono', monospace;color:var(--muted)">${th === "dark" ? d : l}</div></div>`)
+    .join("")}</div>`, "block")}`).join("")}
+</div>`;
+}
+function pageTypography() {
+  const scale = [["xs", 12, 16], ["sm", 14, 20], ["base", 16, 24], ["lg", 18, 28], ["xl", 20, 28], ["2xl", 24, 32], ["3xl", 30, 36], ["4xl", 36, 40]];
+  return `<div class="page"><div class="crumb">Foundations</div><h1>Typography</h1>
+  <p class="lead">DM Sans for body and headings, on the HeroUI default scale. Samples follow the locale switch.</p>
+  ${frame(() => scale.map(([n, s, lh]) => `<div style="display:flex;align-items:baseline;gap:20px;padding:10px 0;border-bottom:1px solid var(--separator)"><code style="width:90px;flex:none;background:none;color:var(--muted)">text-${n}</code><span style="width:70px;flex:none;font-size:12px;color:var(--muted)">${s}/${lh}</span><span style="font-size:${s}px;line-height:${lh}px">${esc(t("dischargeTitle"))}</span></div>`).join(""), "block")}
+  </div>`;
+}
+function pageSpacing() {
+  return `<div class="page"><div class="crumb">Foundations</div><h1>Spacing, radius, elevation</h1>
+  <p class="lead">A 4px base unit, 16px radius for fields and surfaces, and two shadow levels.</p>
+  <h2>Spacing</h2>${frame(() => [1, 2, 3, 4, 6, 8, 12, 16].map((n) => `<div style="display:flex;align-items:center;gap:14px;margin:6px 0"><code style="width:60px;background:none;color:var(--muted)">${n}</code><div style="height:12px;width:${n * 4}px;background:var(--accent);border-radius:4px"></div><span style="font-size:12px;color:var(--muted)">${n * 4}px</span></div>`).join(""), "block")}
+  <h2>Elevation</h2>${frame(() => `<div style="display:flex;gap:24px;flex-wrap:wrap"><div style="width:200px;height:110px;border-radius:16px;background:var(--surface);box-shadow:var(--shadow-field);display:grid;place-items:center;font-weight:600">field · surface</div><div style="width:200px;height:110px;border-radius:16px;background:var(--surface);box-shadow:var(--shadow-overlay);display:grid;place-items:center;font-weight:600">overlay</div></div>`)}
+  </div>`;
+}
+
+/* Button: full docs template */
+function btnCode(c) {
+  const p = [];
+  if (c.variant !== "primary") p.push(`variant: "${c.variant}"`);
+  if (c.size !== "md") p.push(`size: "${c.size}"`);
+  if (c.disabled) p.push("isDisabled: true");
+  if (c.pending) p.push("isPending: true");
+  const rp = p.length ? ` rootProps={{ ${p.join(", ")} }}` : "";
+  const child = c.label ? JSON.stringify(c.label) : `{t("patient.save")}`;
+  return `import { Button } from "@recare/unite-web";\n\n<Button${rp}>\n  ${child}\n</Button>`;
+}
+function playgroundPreview() {
+  const c = state.controls;
+  return frame(() => btn({ variant: c.variant, size: c.size, disabled: c.disabled, pending: c.pending, label: c.label || undefined }));
+}
+function controlsTable() {
+  const c = state.controls;
+  const variants = ["primary", "secondary", "tertiary", "outline", "ghost", "danger", "danger-soft"];
+  return `<table class="ctl"><thead><tr><th>Name</th><th>Description</th><th>Control</th></tr></thead><tbody>
+    <tr><td>rootProps.variant</td><td>Visual weight. One primary per view. <div class="type">"primary" | "secondary" | …</div></td><td><select data-ctl="variant">${variants.map((v) => `<option ${c.variant === v ? "selected" : ""}>${v}</option>`).join("")}</select></td></tr>
+    <tr><td>rootProps.size</td><td>Height and padding. <div class="type">"sm" | "md" | "lg"</div></td><td><div class="seg">${["sm", "md", "lg"].map((s) => `<button class="${c.size === s ? "on" : ""}" data-ctl-size="${s}">${s}</button>`).join("")}</div></td></tr>
+    <tr><td>rootProps.isDisabled</td><td>Blocks interaction and dims the button. <div class="type">boolean</div></td><td>${sw("disabled")}</td></tr>
+    <tr><td>rootProps.isPending</td><td>Shows a spinner and sets <code>aria-busy</code>. <div class="type">boolean</div></td><td>${sw("pending")}</td></tr>
+    <tr><td>children</td><td>Label. Pass a translated string. <div class="type">ReactNode</div></td><td><input type="text" data-ctl="label" value="${esc(c.label)}" placeholder="${esc(t("savePatient"))}"></td></tr>
+  </tbody></table>`;
+}
+function reviewGrid() {
+  const variants = ["primary", "secondary", "tertiary", "outline", "ghost", "danger", "danger-soft"];
+  const cols = ["sm", "md", "lg", "disabled", "pending", "icon only"];
+  return frame(() => `<div class="grid-review" style="grid-template-columns:110px repeat(${cols.length}, auto)"><span></span>${cols.map((c) => `<span class="gc">${c}</span>`).join("")}${variants
+    .map((v) => `<span class="gl">${v}</span>${btn({ variant: v, size: "sm" })}${btn({ variant: v })}${btn({ variant: v, size: "lg" })}${btn({ variant: v, disabled: true })}${btn({ variant: v, pending: true })}${btn({ variant: v, iconOnly: true })}`)
+    .join("")}</div>`);
+}
+function example(name, preview, src, cls = "") {
+  return `<div class="story-bar"><span class="name">${name}</span><span class="actions"><button class="btn-sb" data-toggle-code>Show code</button></span></div>${frame(preview, cls)}<div class="ex-code" hidden>${code(src)}</div>`;
+}
+function pageButton() {
+  const meta = COMPONENTS[0];
+  const header = `<div class="crumb">Components / Button</div><h1>Button</h1>
+    <p class="lead">Triggers an action, such as saving a patient or sending a request. Use a link instead when the action navigates.</p>
+    <div class="meta">${statusTag(meta.status)}<a class="chip" href="#button">Figma ↗</a><span class="chip ok">✓ In sync with Figma · checked 2 days ago</span><span class="chip ok">✓ a11y · 0 violations</span><span class="chip ok">✓ 12 tests</span><a class="chip" href="#button">Source ↗ <code style="background:none;padding:0">src/ui/button</code></a></div>
+    <div class="tabs"><button class="${state.tab === "docs" ? "on" : ""}" data-set="tab" data-val="docs">Docs</button><button class="${state.tab === "canvas" ? "on" : ""}" data-set="tab" data-val="canvas">Playground</button></div>`;
+
+  if (state.tab === "canvas") {
+    const panels = { controls: "Controls", a11y: "Accessibility", interactions: "Interactions", design: "Design" };
+    const body = {
+      controls: controlsTable(),
+      a11y: `<div class="check"><span class="ic">✓</span>47 axe rules passed, 0 violations, 0 incomplete</div><div class="check"><span class="ic">✓</span>Color contrast AA in light <b>and</b> dark</div><div class="check"><span class="ic">✓</span>Accessible name present (children or aria-label)</div><div class="note muted">Runs on every story in CI with <code>a11y: { test: "error" }</code>, which is already on today.</div>`,
+      interactions: `<div class="check"><span class="ic">✓</span><code>render</code> with args</div><div class="check"><span class="ic">✓</span><code>userEvent.tab()</code> → button has focus and a visible focus ring</div><div class="check"><span class="ic">✓</span><code>userEvent.keyboard("{Enter}")</code> → <code>onPress</code> called once</div><div class="check"><span class="ic">✓</span><code>isPending</code> → <code>aria-busy="true"</code>, press ignored</div><div class="note muted">These come from the story's <code>play</code> function and run as Vitest tests in CI, so stories double as tests.</div>`,
+      design: `<div class="figma">Figma frame embed · Button / All variants</div><div class="check"><span class="ic">✓</span>Variants, sizes, and states match the Figma component set</div>`,
+    };
+    return `<div class="page">${header}
+      <div class="story-bar"><span class="name">Default</span><span class="actions"><button class="btn-sb">Open in new tab</button><button class="btn-sb">Copy link</button></span></div>
+      <div id="pg-preview">${playgroundPreview()}</div>
+      <div class="addon"><div class="tabs">${Object.entries(panels).map(([k, l]) => `<button class="${state.panel === k ? "on" : ""}" data-set="panel" data-val="${k}">${l}</button>`).join("")}</div><div class="addon-body">${body[state.panel]}</div></div>
+      <div id="pg-code">${code(btnCode(state.controls))}</div>
+    </div>`;
+  }
+
+  return `<div class="page">${header}
+    <h2>Playground</h2><p class="sub">The <code>Default</code> story. Change the controls and the code updates.</p>
+    <div id="pg-preview">${playgroundPreview()}</div>
+    ${controlsTable()}
+    <div id="pg-code">${code(btnCode(state.controls))}</div>
+
+    <h2>When to use</h2>
+    <div class="cols2">
+      <div class="card"><h4>Use it for</h4><ul><li>Committing an action: save, send, confirm</li><li>Opening a dialog or menu</li><li>Toolbar actions, as icon-only buttons with a label</li></ul></div>
+      <div class="card"><h4>Don't use it for</h4><ul><li>Navigating to another page → <b>Link</b></li><li>Switching a setting on or off → <b>Toggle button</b></li><li>Filtering a list → <b>Chip</b></li></ul></div>
+    </div>
+
+    <h2>Examples</h2>
+    <p class="sub">Docs-only stories (<code>tags: ["!dev"]</code>). They show real usage without cluttering the sidebar, which keeps the <code>Default</code> + <code>AllVariants</code> rule.</p>
+    ${example("Primary with secondary action", () => `<div class="u-actions" style="width:100%">${btn({ variant: "secondary", label: t("cancel") })}${btn({})}</div>`,
+      `<div className="flex justify-end gap-2">\n  <Button rootProps={{ variant: "secondary" }}>{t("common.cancel")}</Button>\n  <Button>{t("patient.save")}</Button>\n</div>`)}
+    ${example("Destructive confirmation", () => `<div style="width:100%;max-width:420px"><div style="font-weight:600;font-size:16px">${esc(t("deleteQ"))}</div><div class="u-desc" style="margin:4px 0 16px;font-size:14px">${esc(t("deleteHelp"))}</div><div class="u-actions">${btn({ variant: "ghost", label: t("keep") })}${btn({ variant: "danger", label: t("del") })}</div></div>`,
+      `<Button rootProps={{ variant: "ghost" }}>{t("common.keep")}</Button>\n<Button rootProps={{ variant: "danger", onPress: remove }}>\n  {t("common.delete")}\n</Button>`)}
+    ${example("Icon-only needs a label", () => `${btn({ variant: "ghost", iconOnly: true, icon: ICON.pencil, aria: t("edit") })}${btn({ variant: "ghost", iconOnly: true, icon: ICON.printer, aria: t("print") })}${btn({ variant: "secondary", iconOnly: true, aria: t("add") })}`,
+      `// axe fails the story if aria-label is missing\n<Button rootProps={{ isIconOnly: true, "aria-label": t("common.edit") }}>\n  <PencilIcon />\n</Button>`)}
+
+    <h2>Do and don't</h2>
+    <div class="cols2">
+      <div><div class="dd-bar do"></div><div class="dd-head do">✓ Do</div><p class="sub">One primary action per view, secondary actions next to it.</p>${frame(() => `${btn({ variant: "secondary", label: t("draft") })}${btn({ label: t("send") })}`)}</div>
+      <div><div class="dd-bar dont"></div><div class="dd-head dont">✕ Don't</div><p class="sub">Compete for attention with several primary buttons.</p>${frame(() => `${btn({ label: t("draft") })}${btn({ label: t("send") })}`)}</div>
+    </div>
+
+    <h2>All variants</h2><p class="sub">The <code>AllVariants</code> story: the design review grid from <code>.storybook/review-grid.tsx</code>.</p>
+    ${reviewGrid()}
+
+    <h2>Accessibility</h2>
+    <div class="cols2">
+      <div class="card"><h4>Keyboard</h4><table class="props"><tr><td><span class="kbd">Tab</span></td><td>Moves focus to the button</td></tr><tr><td><span class="kbd">Enter</span> <span class="kbd">Space</span></td><td>Activates it</td></tr></table></div>
+      <div class="card"><h4>Screen readers</h4><ul><li>Icon-only buttons need <code>aria-label</code></li><li>Pending sets <code>aria-busy</code> and keeps focus in place</li><li>Disabled buttons stay in the accessibility tree</li></ul></div>
+    </div>
+
+    <h2>Props</h2><p class="sub">Derived from HeroUI types. Never hand-written.</p>
+    <table class="props"><thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+      <tr><td>rootProps.variant</td><td class="type">"primary" | "secondary" | "tertiary" | "outline" | "ghost" | "danger" | "danger-soft"</td><td class="type">"primary"</td><td>Visual weight</td></tr>
+      <tr><td>rootProps.size</td><td class="type">"sm" | "md" | "lg"</td><td class="type">"md"</td><td>Height and padding</td></tr>
+      <tr><td>rootProps.isDisabled</td><td class="type">boolean</td><td class="type">false</td><td>Blocks interaction</td></tr>
+      <tr><td>rootProps.isPending</td><td class="type">boolean</td><td class="type">false</td><td>Spinner and aria-busy</td></tr>
+      <tr><td>rootProps.onPress</td><td class="type">(e: PressEvent) =&gt; void</td><td class="type">–</td><td>Fires on click, tap, Enter, Space</td></tr>
+      <tr><td>children</td><td class="type">ReactNode</td><td class="type">–</td><td>Label or icon</td></tr>
+    </tbody></table>
+    <div class="note muted" style="margin-top:28px">Found a problem? <a href="#contributing">Open an issue or contribute</a> · <a href="#button">Edit this page on GitHub</a></div>
+  </div>`;
+}
+
+function simplePreview(id) {
+  switch (id) {
+    case "chip": return `<span class="u-chip">${esc(t("wheelchair"))}</span><span class="u-chip u-chip--accent">${esc(t("searching"))}</span><span class="u-chip u-chip--success">${esc(t("matched"))}</span><span class="u-chip u-chip--warning">${esc(t("oxygen"))}</span><span class="u-chip u-chip--danger">${esc(t("dementia"))}</span>`;
+    case "avatar": return `<span class="u-avatar">MS</span><span class="u-avatar" style="background:var(--success-soft);color:var(--success-soft-foreground)">JB</span><span class="u-avatar" style="background:var(--warning-soft);color:var(--warning-soft-foreground)">AK</span>`;
+    case "link": return `<a class="u-link" href="#link">${esc(t("dischargeTitle"))}</a>`;
+    case "skeleton": return `<div style="width:320px"><div class="u-skel" style="height:14px;width:60%"></div><div class="u-skel" style="height:14px;margin-top:10px"></div><div class="u-skel" style="height:14px;margin-top:10px;width:80%"></div></div>`;
+    case "textarea": return `<div class="u-field" style="width:360px"><label class="u-label">${esc(t("notes"))}</label><textarea class="u-textarea" placeholder="${esc(t("notesPh"))}"></textarea><span class="u-desc">${esc(t("notesHelp"))}</span></div>`;
+    case "toggle-button-group": return toggleGroup();
+    case "badge": return `<span style="position:relative;display:inline-flex">${btn({ variant: "secondary", label: t("dischargeTitle") })}<span style="position:absolute;top:-6px;inset-inline-end:-6px;min-width:20px;height:20px;border-radius:999px;background:var(--danger);color:var(--danger-foreground);font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 5px">3</span></span>`;
+    default: return `<span style="color:var(--muted);font-size:13px">Default story renders here</span>`;
+  }
+}
+function pageComponent(id) {
+  const c = COMPONENTS.find((x) => x.id === id);
+  const sections = ["Playground (Default story + controls + live code)", "When to use / when not to", "Examples (docs-only stories)", "Do and don't", "All variants (review grid)", "Accessibility", "Props (derived from HeroUI)"];
+  return `<div class="page"><div class="crumb">Components / ${c.name}</div><h1>${c.name}</h1>
+    <div class="meta">${statusTag(c.status)}<span class="chip ${c.figma ? "ok" : ""}">${c.figma ? "✓ In sync with Figma" : "⚠ Figma parity not checked"}</span><span class="chip ok">✓ a11y</span><span class="chip">${c.tests} tests</span></div>
+    ${c.status === "beta" ? `<div class="note">This component is <b>beta</b>. The API may still change. Feedback goes to the #design-system channel.</div>` : ""}
+    <h2>Default</h2>${frame(() => simplePreview(id))}
+    <h2>Docs page</h2>
+    <div class="note muted">Every component uses the same MDX template as <a href="#button">Button</a>. ${c.docs ? "This page is complete." : "<b>This page is not written yet</b>, so it counts against docs coverage on the Health page."}</div>
+    <div class="card"><ul>${sections.map((s) => `<li>${s}</li>`).join("")}</ul></div>
+  </div>`;
+}
+
+function toggleGroup() {
+  return `<div class="u-tbg" role="group" aria-label="${esc(t("careType"))}">${["inpatient", "shortTerm", "homeCare"]
+    .map((k) => `<button type="button" class="u-tb" data-fit data-care="${k}" aria-pressed="${state.careType === k}">${esc(t(k))}</button>`)
+    .join("")}</div>`;
+}
+function pagePattern() {
+  const needs = ["wheelchair", "oxygen", "dementia", "wound"];
+  const form = () => `<div class="u-card">
+    <div><h3>${esc(t("dischargeTitle"))}</h3><div class="u-desc" style="font-size:14px;margin-top:4px">${esc(t("dischargeSub"))}</div></div>
+    <div class="u-row">
+      <div class="u-field"><label class="u-label">${esc(t("patientName"))}</label><input class="u-input" placeholder="${esc(t("patientPh"))}"></div>
+      <div class="u-field"><label class="u-label">${esc(t("dischargeDate"))}</label><input class="u-input" value="${state.locale === "de" ? "14.10.2026" : "10/14/2026"}"></div>
+    </div>
+    <div class="u-field"><span class="u-label">${esc(t("careType"))}</span><div>${toggleGroup()}</div></div>
+    <div class="u-field"><span class="u-label">${esc(t("careNeeds"))}</span><div style="display:flex;gap:8px;flex-wrap:wrap">${needs
+      .map((n) => `<button type="button" class="u-chip" data-need="${n}" aria-pressed="${state.needs.has(n)}">${state.needs.has(n) ? "✓ " : ""}${esc(t(n))}</button>`)
+      .join("")}</div></div>
+    <div class="u-field"><label class="u-label">${esc(t("notes"))}</label><textarea class="u-textarea" placeholder="${esc(t("notesPh"))}"></textarea><span class="u-desc">${esc(t("notesHelp"))}</span></div>
+    <div class="u-sep"></div>
+    <div class="u-actions">${btn({ variant: "secondary", label: t("draft") })}${btn({ label: t("send"), style: "width:150px" })}</div>
+  </div>`;
+  return `<div class="page"><div class="crumb">Patterns</div><h1>Discharge request form</h1>
+    <p class="lead">Patterns show Unite components composed in a real Recare flow. They are built only from package exports, so they double as an integration check.</p>
+    <div class="meta"><span class="chip">Uses:</span>${["Button", "Chip", "Toggle button group", "Textarea", "Description"].map((n) => `<a class="chip" href="#${COMPONENTS.find((c) => c.name === n).id}">${n}</a>`).join("")}</div>
+    <div class="note">Switch <b>Locale</b> to <b>DE</b>. Fixed-width controls that can't fit their label get a red dashed outline, and the toolbar counts them. The same check can run in CI as a test.</div>
+    ${frame(form)}
+  </div>`;
+}
+
+function pageContributing() {
+  const steps = [
+    ["Propose", "Linear issue: Web, Native, or both"],
+    ["Design", "Figma component, reviewed by design"],
+    ["Scaffold", "task unite-web:new-component"],
+    ["Build", "Thin wrapper with rootProps and slotProps"],
+    ["Document", "Default, AllVariants, MDX docs"],
+    ["Review", "PR preview, visual diff, design sign-off"],
+    ["Release", "Proposed → beta → stable"],
+  ];
+  const dod = [
+    "Figma component exists and is linked in the story parameters",
+    "Wrapper follows rootProps / slotProps, types derived from HeroUI",
+    "Default story reaches every root setting through Controls",
+    "AllVariants review grid covers every variant, size, and state",
+    "MDX docs: when to use, examples, do and don't, accessibility",
+    "play() interaction test for keyboard and main behavior",
+    "0 axe violations in light and dark",
+    "No truncated labels in German",
+    "Visual baseline accepted on the PR",
+    "Status tag set (proposed, beta, stable)",
+  ];
+  return `<div class="page"><div class="crumb">Contributing</div><h1>How to contribute</h1>
+    <p class="lead">Anyone can contribute a component or a fix. This page is the single path from idea to stable, and the checklist is what reviewers check.</p>
+    <h2>From idea to stable</h2>
+    <div class="steps">${steps.map(([b, s], i) => `<div class="step"><div class="n">${i + 1}</div><b>${b}</b><span>${s}</span></div>`).join("")}</div>
+
+    <h2>Scaffold a component</h2>
+    <p class="sub">One command creates every file with the conventions already in place, so nobody copies an old component by hand.</p>
+    ${code(`$ task unite-web:new-component name=tabs\n\n  created  src/ui/tabs/tabs.tsx           // wrapper with rootProps / slotProps\n  created  src/ui/tabs/tabs.stories.tsx   // Default + AllVariants\n  created  src/ui/tabs/tabs.docs.mdx      // docs template\n  created  src/ui/tabs/tabs.test.tsx      // Testing Library\n  updated  src/index.ts                   // public export`)}
+
+    <h2>Definition of done</h2>
+    <div class="progress"><div id="dod-bar" style="width:0%"></div></div><div class="sub" id="dod-label">0 of ${dod.length} done</div>
+    <div class="dod">${dod.map((d, i) => `<label><input type="checkbox" data-dod="${i}"> <span>${d}</span></label>`).join("")}</div>
+
+    <h2>Status lifecycle</h2>
+    <div class="lifecycle">
+      <div class="card"><div class="status proposed">proposed</div><p class="sub" style="margin:8px 0 0">In review. Not exported yet.</p></div>
+      <div class="card"><div class="status beta">beta</div><p class="sub" style="margin:8px 0 0">Usable, but the API may change. Shown in the sidebar.</p></div>
+      <div class="card"><div class="status stable">stable</div><p class="sub" style="margin:8px 0 0">API frozen. Breaking changes need a changelog entry.</p></div>
+      <div class="card"><div class="status deprecated">deprecated</div><p class="sub" style="margin:8px 0 0">Shows a replacement. Removed after one release.</p></div>
+    </div>
+
+    <h2>How review works</h2>
+    <p class="sub">Every PR that touches <code>unite-web</code> gets a Storybook preview and a visual diff. Reviewers accept or reject each change.</p>
+    <div class="card">
+      <div class="pr"><div><b>feat(unite-web): tighter button padding</b><div class="sub" style="margin:2px 0 0">Preview: storybook-pr-412 · 2 visual changes · 0 a11y violations · 14/14 tests</div></div><div style="display:flex;gap:6px"><button class="btn-sb">Reject</button><button class="btn-sb" style="background:var(--sb-accent);color:#fff;border-color:var(--sb-accent)">Accept</button></div></div>
+      <div class="diff theme-light"><div>${btn({ label: "Save patient" })}</div><div class="after">${btn({ label: "Save patient", style: "padding:0 24px" })}</div></div>
+      <div class="sub" style="margin-top:6px">Before / after · Button / AllVariants</div>
+    </div>
+    <div class="note muted">Chromatic or a self-hosted equivalent (Playwright screenshots + static preview) is an open decision.</div>
+  </div>`;
+}
+
+function pageHealth() {
+  const n = COMPONENTS.length;
+  const pct = (k) => Math.round((COMPONENTS.filter((c) => c[k]).length / n) * 100);
+  const yes = (v) => (v ? '<span class="y">✓</span>' : '<span class="n">✕</span>');
+  return `<div class="page"><div class="crumb">Contributing</div><h1>Design system health</h1>
+    <p class="lead">Generated on every build from story tags, test results, and Figma links. It shows where the design system needs work, without anyone keeping a spreadsheet.</p>
+    <div class="note">Numbers on this page are made up for the mock.</div>
+    <div class="cards4">
+      <div class="card"><div class="tagline">Components</div><div class="big">${n}</div><div class="sub" style="margin:0">${COMPONENTS.filter((c) => c.status === "stable").length} stable · ${COMPONENTS.filter((c) => c.status === "beta").length} beta</div></div>
+      <div class="card"><div class="tagline">Figma parity</div><div class="big">${pct("figma")}%</div><div class="bar"><div style="width:${pct("figma")}%"></div></div></div>
+      <div class="card"><div class="tagline">Docs coverage</div><div class="big">${pct("docs")}%</div><div class="bar"><div style="width:${pct("docs")}%;background:#bf8700"></div></div></div>
+      <div class="card"><div class="tagline">Visual baselines</div><div class="big">${pct("visual")}%</div><div class="bar"><div style="width:${pct("visual")}%"></div></div></div>
+    </div>
+    <h2>Components</h2>
+    <table class="health"><thead><tr><th>Component</th><th>Status</th><th>Figma</th><th>a11y</th><th>Tests</th><th>Docs</th><th>Visual baseline</th><th>Owner</th></tr></thead><tbody>
+      ${COMPONENTS.map((c) => `<tr data-nav="${c.id}"><td><b>${c.name}</b></td><td>${statusTag(c.status)}</td><td>${yes(c.figma)}</td><td>${yes(c.a11y)}</td><td>${c.tests}</td><td>${yes(c.docs)}</td><td>${yes(c.visual)}</td><td>${c.owner}</td></tr>`).join("")}
+    </tbody></table>
+  </div>`;
+}
+
+/* ---------- render ---------- */
+function renderContent() {
+  const p = state.page;
+  const html =
+    p === "welcome" ? pageWelcome()
+    : p === "colors" ? pageColors()
+    : p === "typography" ? pageTypography()
+    : p === "spacing" ? pageSpacing()
+    : p === "button" ? pageButton()
+    : p === "discharge" ? pagePattern()
+    : p === "contributing" ? pageContributing()
+    : p === "health" ? pageHealth()
+    : COMPONENTS.some((c) => c.id === p) ? pageComponent(p)
+    : pageWelcome();
+  document.getElementById("content").innerHTML = html;
+  detectOverflow();
+}
+function detectOverflow() {
+  let count = 0;
+  document.querySelectorAll(".pane [data-fit]").forEach((el) => {
+    const over = el.scrollWidth > el.clientWidth + 1;
+    el.classList.toggle("overflowing", over);
+    if (over) count++;
+  });
+  const pill = document.getElementById("trunc");
+  if (!pill) return;
+  pill.className = "pill " + (count ? "warn" : "ok");
+  pill.textContent = count ? `⚠ ${count} truncated label${count > 1 ? "s" : ""}` : "✓ No truncation";
+}
+function updatePlayground() {
+  const pv = document.getElementById("pg-preview");
+  const pc = document.getElementById("pg-code");
+  if (pv) pv.innerHTML = playgroundPreview();
+  if (pc) pc.innerHTML = code(btnCode(state.controls));
+  detectOverflow();
+}
+function render() {
+  renderToolbar();
+  renderSidebar();
+  renderContent();
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", (e) => {
+  const nav = e.target.closest("[data-nav]");
+  if (nav) { location.hash = nav.dataset.nav; return; }
+  const set = e.target.closest("[data-set]");
+  if (set) { state[set.dataset.set] = set.dataset.val; render(); return; }
+  const f = e.target.closest("[data-filter]");
+  if (f) { state.filter = f.dataset.filter; renderSidebar(); return; }
+  const size = e.target.closest("[data-ctl-size]");
+  if (size) { state.controls.size = size.dataset.ctlSize; size.parentElement.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b === size)); updatePlayground(); return; }
+  const copy = e.target.closest("[data-copy]");
+  if (copy) { navigator.clipboard?.writeText(copy.nextElementSibling.textContent); copy.textContent = "Copied"; setTimeout(() => (copy.textContent = "Copy"), 1200); return; }
+  const tc = e.target.closest("[data-toggle-code]");
+  if (tc) { const box = tc.closest(".story-bar").nextElementSibling.nextElementSibling; box.hidden = !box.hidden; tc.textContent = box.hidden ? "Show code" : "Hide code"; return; }
+  const care = e.target.closest("[data-care]");
+  if (care) { state.careType = care.dataset.care; renderContent(); return; }
+  const need = e.target.closest("[data-need]");
+  if (need) { const k = need.dataset.need; state.needs.has(k) ? state.needs.delete(k) : state.needs.add(k); renderContent(); return; }
+});
+document.addEventListener("input", (e) => {
+  if (e.target.id === "search") { state.search = e.target.value; renderSidebar(); return; }
+  const k = e.target.dataset.ctl;
+  if (!k) return;
+  state.controls[k] = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+  updatePlayground();
+});
+document.addEventListener("change", (e) => {
+  if (e.target.dataset.dod !== undefined) {
+    const all = document.querySelectorAll("[data-dod]");
+    const done = [...all].filter((x) => x.checked).length;
+    document.getElementById("dod-bar").style.width = (done / all.length) * 100 + "%";
+    document.getElementById("dod-label").textContent = `${done} of ${all.length} done`;
+  }
+});
+function fromHash() {
+  const id = location.hash.slice(1) || "welcome";
+  if (id !== state.page) { state.page = id; state.tab = "docs"; }
+  render();
+  document.getElementById("content").scrollTop = 0;
+}
+window.addEventListener("hashchange", fromHash);
+window.addEventListener("resize", detectOverflow);
+fromHash();
+</script>
+</body>
+</html>
